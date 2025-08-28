@@ -6,7 +6,7 @@ namespace Minofall
     {
         public struct TetrominoData
         {
-            public Vector2Int[][] Cells; // with rotation index
+            public Vector2Int[][] Cells; // include rotation index cells
             public Color Color;
 
             public TetrominoData(Vector2Int[][] cells, Color color)
@@ -23,9 +23,11 @@ namespace Minofall
             new(
                 new Vector2Int[][]
                 {
-                    new Vector2Int[] { new(0,2), new(1,2), new(2,2), new(3,2) }, // 0 độ
-                    new Vector2Int[] { new(2,0), new(2,1), new(2,2), new(2,3) },
-                    
+                    new Vector2Int[] { new(0,2), new(1,2), new(2,2), new(3,2) }, // 0
+                    new Vector2Int[] { new(2,0), new(2,1), new(2,2), new(2,3) }, // 90
+                    new Vector2Int[] { new(0,1), new(1,1), new(2,1), new(3,1) }, // 180
+                    new Vector2Int[] { new(1,0), new(1,1), new(1,2), new(1,3) }, // 270
+
                 },
                 new Color(0f, 1f, 1f) // Cyan
             ),
@@ -90,6 +92,6 @@ namespace Minofall
 
         public static Color GetColor(int idx) => _tetrominoes[idx].Color;
 
-        public static Vector2Int[] GetCells(int idx, int rotationIdx) => _tetrominoes[idx][rotationIdx];
+        public static Vector2Int[] GetCells(int idx, int rotationIdx) => _tetrominoes[idx].Cells[rotationIdx];
     }
 }

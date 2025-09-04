@@ -6,7 +6,11 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/MainGame.unity
+    path: Assets/Minofall/Resources/Scenes/MainGame.unity
     guid: 26c12a8f80f06c549819756b23ece280
   m_configObjects:
+    com.unity.adaptiveperformance.google.android.provider_settings: {fileID: 11400000, guid: cf0f2a3396919e5499d723883d16bb6e, type: 2}
+    com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: 7cbfcbfcb40e4ac4489ab4ad05054ed3, type: 2}
+    com.unity.adaptiveperformance.samsung.android.provider_settings: {fileID: 11400000, guid: dc597e8d706ced44689a9cb2b0199637, type: 2}
     com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000, guid: 77de6ca9316164b479bdc85bc162a2e7, type: 2}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: b017ec87c4fb145499e2e57053d62b45, type: 3}

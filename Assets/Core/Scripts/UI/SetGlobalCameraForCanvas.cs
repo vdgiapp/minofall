@@ -1,0 +1,25 @@
+using UnityEngine;
+
+namespace Minofall
+{
+    [RequireComponent(typeof(Canvas))]
+    public class SetGlobalCameraForCanvas : MonoBehaviour
+    {
+        private Canvas _canvas;
+
+        private void Awake()
+        {
+            _canvas = GetComponent<Canvas>();
+            _canvas.worldCamera = Camera.main;
+        }
+
+        private void Start()
+        {
+            // Just in case the main camera is not set at Awake
+            if (_canvas.worldCamera == null)
+            {
+                _canvas.worldCamera = Camera.main;
+            }
+        }
+    }
+}

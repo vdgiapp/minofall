@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Localization-Assets-Shared
+  m_EditorClassIdentifier: 
+  m_GroupName: Localization-Assets-Shared
+  m_Data:
+    m_SerializedData: []
+  m_GUID: e5b2a954bba10df4194833a7c8721d2d
+  m_SerializeEntries: []
+  m_ReadOnly: 1
+  m_Settings: {fileID: 11400000, guid: 87532f9de8e9bcf42bb1fa198711bdd2, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 6d77823015ca0e4418fc35c72fb05a3b, type: 2}
+    - {fileID: 11400000, guid: dc261b919c0bef141ba8feb9995df7bb, type: 2}
+  m_FolderEntryCache: []
+  m_AssetCollectionEntryCache: []
+  <FlaggedDuringContentUpdateRestriction>k__BackingField: 0
+  m_CurrentHash:
+    bytes[0]: 79
+    bytes[1]: 141
+    bytes[2]: 65
+    bytes[3]: 148
+    bytes[4]: 154
+    bytes[5]: 17
+    bytes[6]: 75
+    bytes[7]: 254
+    bytes[8]: 17
+    bytes[9]: 155
+    bytes[10]: 107
+    bytes[11]: 125
+    bytes[12]: 34
+    bytes[13]: 206
+    bytes[14]: 10
+    bytes[15]: 25

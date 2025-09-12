@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Minofall
 {
@@ -19,5 +21,30 @@ namespace Minofall
         }
 
         public static string NumberFormat(long number) => number.ToString("N0");
+
+        public static List<string> GetLoadedSceneNames()
+        {
+            List<string> scenes = new();
+            int count = SceneManager.sceneCount;
+            for (int i = 0; i < count; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                if (scene.isLoaded)
+                    scenes.Add(scene.name);
+            }
+            return scenes;
+        }
+
+        public static bool IsSceneLoaded(string sceneName)
+        {
+            int count = SceneManager.sceneCount;
+            for (int i = 0; i < count; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                if (scene.isLoaded && scene.name == sceneName)
+                    return true;
+            }
+            return false;
+        }
     }
 }

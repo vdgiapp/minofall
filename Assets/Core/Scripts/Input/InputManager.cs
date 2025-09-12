@@ -19,7 +19,6 @@ namespace Minofall
         public event Action OnHardDrop;
         public event Action OnHold;
 
-        public EventSystem eventSystem { get; private set; }
         public GInputActions inputActions { get; private set; }
 
         private GInputActions.KeyboardActions _keyboardActions;
@@ -28,7 +27,6 @@ namespace Minofall
         private void Awake()
         {
             InstanceInit();
-            eventSystem = GetComponentInChildren<EventSystem>();
             inputActions = new GInputActions();
             //
             _keyboardActions = inputActions.Keyboard;

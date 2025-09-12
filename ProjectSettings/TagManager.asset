@@ -50,6 +50,6 @@ TagManager:
   - name: UI
     uniqueID: 1177414235
     locked: 0
-  - name: Transition
+  - name: Loading
     uniqueID: 3412760655
     locked: 0

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -22,7 +22,7 @@ namespace Minofall
         public GInputActions inputActions { get; private set; }
 
         private GInputActions.KeyboardActions _keyboardActions;
-        private GInputActions.MobileActions _mobileActions;
+        private GInputActions.TouchActions _touchActions;
 
         private void Awake()
         {
@@ -30,18 +30,24 @@ namespace Minofall
             inputActions = new GInputActions();
             //
             _keyboardActions = inputActions.Keyboard;
-            _mobileActions = inputActions.Mobile;
+            _touchActions = inputActions.Touch;
         }
 
         private void Start()
         {
-            _keyboardActions.MoveLeft.performed += OnMoveLeftPerformed;
-            _keyboardActions.MoveRight.performed += OnMoveRightPerformed;
-            _keyboardActions.RotateLeft.performed += OnRotateLeftPerformed;
-            _keyboardActions.RotateRight.performed += OnRotateRightPerformed;
-            _keyboardActions.SoftDrop.performed += OnSoftDropPerformed;
-            _keyboardActions.HardDrop.performed += OnHardDropPerformed;
-            _keyboardActions.Hold.performed += OnHoldPerformed;
+            // Keyboard
+            _keyboardActions.MoveLeft.performed += RaiseMoveLeft;
+            _keyboardActions.MoveRight.performed += RaiseMoveRight;
+            _keyboardActions.RotateLeft.performed += RaiseRotateLeft;
+            _keyboardActions.RotateRight.performed += RaiseRotateRight;
+            _keyboardActions.SoftDrop.performed += RaiseSoftDrop;
+            _keyboardActions.HardDrop.performed += RaiseHardDrop;
+            _keyboardActions.Hold.performed += RaiseHold;
+
+            // Mobile
+            _touchActions.PrimaryContact.started += OnTouchStarted;
+            _touchActions.PrimaryContact.canceled += OnTouchEnded;
+            _touchActions.PrimaryPosition.performed += OnPositionPerformed;
         }
 
         private void OnEnable()
@@ -56,23 +62,31 @@ namespace Minofall
 
         private void OnDestroy()
         {
-            _keyboardActions.MoveLeft.performed -= OnMoveLeftPerformed;
-            _keyboardActions.MoveRight.performed -= OnMoveRightPerformed;
-            _keyboardActions.RotateLeft.performed -= OnRotateLeftPerformed;
-            _keyboardActions.RotateRight.performed -= OnRotateRightPerformed;
-            _keyboardActions.SoftDrop.performed -= OnSoftDropPerformed;
-            _keyboardActions.HardDrop.performed -= OnHardDropPerformed;
-            _keyboardActions.Hold.performed -= OnHoldPerformed;
+            // Keyboard
+            _keyboardActions.MoveLeft.performed -= RaiseMoveLeft;
+            _keyboardActions.MoveRight.performed -= RaiseMoveRight;
+            _keyboardActions.RotateLeft.performed -= RaiseRotateLeft;
+            _keyboardActions.RotateRight.performed -= RaiseRotateRight;
+            _keyboardActions.SoftDrop.performed -= RaiseSoftDrop;
+            _keyboardActions.HardDrop.performed -= RaiseHardDrop;
+            _keyboardActions.Hold.performed -= RaiseHold;
+
+            // Mobile
+            _touchActions.PrimaryContact.started -= OnTouchStarted;
+            _touchActions.PrimaryContact.canceled -= OnTouchEnded;
+            _touchActions.PrimaryPosition.performed -= OnPositionPerformed;
         }
 
-        public void EnableKeyboardActions()
+        public void EnableMainGameActions()
         {
             _keyboardActions.Enable();
+            _touchActions.Enable();
         }
 
-        public void DisableKeyboardActions()
+        public void DisableMainGameActions()
         {
             _keyboardActions.Disable();
+            _touchActions.Disable();
         }
 
         private void InstanceInit()
@@ -85,39 +99,27 @@ namespace Minofall
             Instance = this;
         }
 
-        private void OnMoveLeftPerformed(InputAction.CallbackContext context)
+        private void RaiseMoveLeft(InputAction.CallbackContext context) => OnMoveLeft?.Invoke();
+        private void RaiseMoveRight(InputAction.CallbackContext context) => OnMoveRight?.Invoke();
+        private void RaiseRotateLeft(InputAction.CallbackContext context) => OnRotateLeft?.Invoke();
+        private void RaiseRotateRight(InputAction.CallbackContext context) => OnRotateRight?.Invoke();
+        private void RaiseSoftDrop(InputAction.CallbackContext context) => OnSoftDrop?.Invoke();
+        private void RaiseHardDrop(InputAction.CallbackContext context) => OnHardDrop?.Invoke();
+        private void RaiseHold(InputAction.CallbackContext context) => OnHold?.Invoke();
+
+        private void OnTouchStarted(InputAction.CallbackContext ctx)
         {
-            OnMoveLeft?.Invoke();
+            
         }
 
-        private void OnMoveRightPerformed(InputAction.CallbackContext context)
+        private void OnTouchEnded(InputAction.CallbackContext ctx)
         {
-            OnMoveRight?.Invoke();
-        }
-        
-        private void OnRotateLeftPerformed(InputAction.CallbackContext context)
-        {
-            OnRotateLeft?.Invoke();
+            
         }
 
-        private void OnRotateRightPerformed(InputAction.CallbackContext context)
+        private void OnPositionPerformed(InputAction.CallbackContext ctx)
         {
-            OnRotateRight?.Invoke();
-        }
-
-        private void OnSoftDropPerformed(InputAction.CallbackContext context)
-        {
-            OnSoftDrop?.Invoke();
-        }
-
-        private void OnHardDropPerformed(InputAction.CallbackContext context)
-        {
-            OnHardDrop?.Invoke();
-        }
-
-        private void OnHoldPerformed(InputAction.CallbackContext context)
-        {
-            OnHold?.Invoke();
+            
         }
     }
 }

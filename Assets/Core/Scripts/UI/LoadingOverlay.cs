@@ -15,8 +15,10 @@ namespace Minofall
         private void Awake()
         {
             _canvasGroup = GetComponent<CanvasGroup>();
+#if UNITY_EDITOR
             _canvasGroup.alpha = 0f;
             _canvasGroup.blocksRaycasts = false;
+#endif
         }
 
         public async UniTask ShowAsync()

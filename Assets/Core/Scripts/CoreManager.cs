@@ -7,6 +7,8 @@ namespace Minofall
     public class CoreManager : MonoBehaviour
     {
         public static CoreManager Instance { get; private set; }
+        
+        public SessionData lastSessionData { get; private set; } = new(0, 1, 0);
 
         private void Awake()
         {
@@ -15,12 +17,21 @@ namespace Minofall
 
         private void Start()
         {
-            // Change to Main Menu when build
-            //SceneController.Instance.NewTransition()
-            //    .Load(SceneController.SceneName.MainMenu)
-            //    .WithOverlay()
-            //    .Perform();
+#if (!UNITY_EDITOR)
+            SceneController.Instance.NewTransition()
+                .Load(SceneController.SceneName.MainMenu, true)
+                .Unload("BootstrapEditor")
+                .WithOverlay()
+                .Perform();
+#endif
         }
+
+        private void OnDestroy()
+        {
+            
+        }
+
+        public void SetLastSessionData(SessionData data) => lastSessionData = data;
 
         private void InstanceInit()
         {

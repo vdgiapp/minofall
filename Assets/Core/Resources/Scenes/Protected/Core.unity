@@ -829,6 +829,7 @@ GameObject:
   - component: {fileID: 7852483886722055473}
   - component: {fileID: 9923487027886814}
   - component: {fileID: 7840831513060715707}
+  - component: {fileID: 7852483886722055474}
   m_Layer: 5
   m_Name: BackgroundCanvas
   m_TagString: Untagged
@@ -1606,6 +1607,18 @@ Canvas:
   m_SortingLayerID: 938314963
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!225 &7852483886722055474
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4186294945874540865}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!224 &7884956124861981424
 RectTransform:
   m_ObjectHideFlags: 0

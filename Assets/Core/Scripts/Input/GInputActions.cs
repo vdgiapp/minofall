@@ -239,10 +239,52 @@ namespace Minofall
             ]
         },
         {
-            ""name"": ""Mobile"",
+            ""name"": ""Touch"",
             ""id"": ""5663782a-cdb2-462b-901f-2f61318c4f65"",
-            ""actions"": [],
-            ""bindings"": []
+            ""actions"": [
+                {
+                    ""name"": ""PrimaryPosition"",
+                    ""type"": ""PassThrough"",
+                    ""id"": ""907106d3-49a9-4dca-9221-20fdccb8c3af"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""PrimaryContact"",
+                    ""type"": ""PassThrough"",
+                    ""id"": ""fc128191-0d18-4036-b833-e7544feb2416"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""1f01e422-0a5e-45d6-a5f1-143a1c7b0454"",
+                    ""path"": ""<Touchscreen>/primaryTouch/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PrimaryPosition"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""acc00a55-27f4-4918-b3c2-8e85d84a69f2"",
+                    ""path"": ""<Touchscreen>/primaryTouch/press"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PrimaryContact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -256,14 +298,16 @@ namespace Minofall
             m_Keyboard_RotateLeft = m_Keyboard.FindAction("RotateLeft", throwIfNotFound: true);
             m_Keyboard_RotateRight = m_Keyboard.FindAction("RotateRight", throwIfNotFound: true);
             m_Keyboard_Hold = m_Keyboard.FindAction("Hold", throwIfNotFound: true);
-            // Mobile
-            m_Mobile = asset.FindActionMap("Mobile", throwIfNotFound: true);
+            // Touch
+            m_Touch = asset.FindActionMap("Touch", throwIfNotFound: true);
+            m_Touch_PrimaryPosition = m_Touch.FindAction("PrimaryPosition", throwIfNotFound: true);
+            m_Touch_PrimaryContact = m_Touch.FindAction("PrimaryContact", throwIfNotFound: true);
         }
 
         ~@GInputActions()
         {
             UnityEngine.Debug.Assert(!m_Keyboard.enabled, "This will cause a leak and performance issues, GInputActions.Keyboard.Disable() has not been called.");
-            UnityEngine.Debug.Assert(!m_Mobile.enabled, "This will cause a leak and performance issues, GInputActions.Mobile.Disable() has not been called.");
+            UnityEngine.Debug.Assert(!m_Touch.enabled, "This will cause a leak and performance issues, GInputActions.Touch.Disable() has not been called.");
         }
 
         /// <summary>
@@ -498,24 +542,34 @@ namespace Minofall
         /// </summary>
         public KeyboardActions @Keyboard => new KeyboardActions(this);
 
-        // Mobile
-        private readonly InputActionMap m_Mobile;
-        private List<IMobileActions> m_MobileActionsCallbackInterfaces = new List<IMobileActions>();
+        // Touch
+        private readonly InputActionMap m_Touch;
+        private List<ITouchActions> m_TouchActionsCallbackInterfaces = new List<ITouchActions>();
+        private readonly InputAction m_Touch_PrimaryPosition;
+        private readonly InputAction m_Touch_PrimaryContact;
         /// <summary>
-        /// Provides access to input actions defined in input action map "Mobile".
+        /// Provides access to input actions defined in input action map "Touch".
         /// </summary>
-        public struct MobileActions
+        public struct TouchActions
         {
             private @GInputActions m_Wrapper;
 
             /// <summary>
             /// Construct a new instance of the input action map wrapper class.
             /// </summary>
-            public MobileActions(@GInputActions wrapper) { m_Wrapper = wrapper; }
+            public TouchActions(@GInputActions wrapper) { m_Wrapper = wrapper; }
+            /// <summary>
+            /// Provides access to the underlying input action "Touch/PrimaryPosition".
+            /// </summary>
+            public InputAction @PrimaryPosition => m_Wrapper.m_Touch_PrimaryPosition;
+            /// <summary>
+            /// Provides access to the underlying input action "Touch/PrimaryContact".
+            /// </summary>
+            public InputAction @PrimaryContact => m_Wrapper.m_Touch_PrimaryContact;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
-            public InputActionMap Get() { return m_Wrapper.m_Mobile; }
+            public InputActionMap Get() { return m_Wrapper.m_Touch; }
             /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
             public void Enable() { Get().Enable(); }
             /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
@@ -523,9 +577,9 @@ namespace Minofall
             /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
             public bool enabled => Get().enabled;
             /// <summary>
-            /// Implicitly converts an <see ref="MobileActions" /> to an <see ref="InputActionMap" /> instance.
+            /// Implicitly converts an <see ref="TouchActions" /> to an <see ref="InputActionMap" /> instance.
             /// </summary>
-            public static implicit operator InputActionMap(MobileActions set) { return set.Get(); }
+            public static implicit operator InputActionMap(TouchActions set) { return set.Get(); }
             /// <summary>
             /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
             /// </summary>
@@ -533,11 +587,17 @@ namespace Minofall
             /// <remarks>
             /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
             /// </remarks>
-            /// <seealso cref="MobileActions" />
-            public void AddCallbacks(IMobileActions instance)
+            /// <seealso cref="TouchActions" />
+            public void AddCallbacks(ITouchActions instance)
             {
-                if (instance == null || m_Wrapper.m_MobileActionsCallbackInterfaces.Contains(instance)) return;
-                m_Wrapper.m_MobileActionsCallbackInterfaces.Add(instance);
+                if (instance == null || m_Wrapper.m_TouchActionsCallbackInterfaces.Contains(instance)) return;
+                m_Wrapper.m_TouchActionsCallbackInterfaces.Add(instance);
+                @PrimaryPosition.started += instance.OnPrimaryPosition;
+                @PrimaryPosition.performed += instance.OnPrimaryPosition;
+                @PrimaryPosition.canceled += instance.OnPrimaryPosition;
+                @PrimaryContact.started += instance.OnPrimaryContact;
+                @PrimaryContact.performed += instance.OnPrimaryContact;
+                @PrimaryContact.canceled += instance.OnPrimaryContact;
             }
 
             /// <summary>
@@ -546,18 +606,24 @@ namespace Minofall
             /// <remarks>
             /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
             /// </remarks>
-            /// <seealso cref="MobileActions" />
-            private void UnregisterCallbacks(IMobileActions instance)
+            /// <seealso cref="TouchActions" />
+            private void UnregisterCallbacks(ITouchActions instance)
             {
+                @PrimaryPosition.started -= instance.OnPrimaryPosition;
+                @PrimaryPosition.performed -= instance.OnPrimaryPosition;
+                @PrimaryPosition.canceled -= instance.OnPrimaryPosition;
+                @PrimaryContact.started -= instance.OnPrimaryContact;
+                @PrimaryContact.performed -= instance.OnPrimaryContact;
+                @PrimaryContact.canceled -= instance.OnPrimaryContact;
             }
 
             /// <summary>
-            /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="MobileActions.UnregisterCallbacks(IMobileActions)" />.
+            /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="TouchActions.UnregisterCallbacks(ITouchActions)" />.
             /// </summary>
-            /// <seealso cref="MobileActions.UnregisterCallbacks(IMobileActions)" />
-            public void RemoveCallbacks(IMobileActions instance)
+            /// <seealso cref="TouchActions.UnregisterCallbacks(ITouchActions)" />
+            public void RemoveCallbacks(ITouchActions instance)
             {
-                if (m_Wrapper.m_MobileActionsCallbackInterfaces.Remove(instance))
+                if (m_Wrapper.m_TouchActionsCallbackInterfaces.Remove(instance))
                     UnregisterCallbacks(instance);
             }
 
@@ -567,21 +633,21 @@ namespace Minofall
             /// <remarks>
             /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
             /// </remarks>
-            /// <seealso cref="MobileActions.AddCallbacks(IMobileActions)" />
-            /// <seealso cref="MobileActions.RemoveCallbacks(IMobileActions)" />
-            /// <seealso cref="MobileActions.UnregisterCallbacks(IMobileActions)" />
-            public void SetCallbacks(IMobileActions instance)
+            /// <seealso cref="TouchActions.AddCallbacks(ITouchActions)" />
+            /// <seealso cref="TouchActions.RemoveCallbacks(ITouchActions)" />
+            /// <seealso cref="TouchActions.UnregisterCallbacks(ITouchActions)" />
+            public void SetCallbacks(ITouchActions instance)
             {
-                foreach (var item in m_Wrapper.m_MobileActionsCallbackInterfaces)
+                foreach (var item in m_Wrapper.m_TouchActionsCallbackInterfaces)
                     UnregisterCallbacks(item);
-                m_Wrapper.m_MobileActionsCallbackInterfaces.Clear();
+                m_Wrapper.m_TouchActionsCallbackInterfaces.Clear();
                 AddCallbacks(instance);
             }
         }
         /// <summary>
-        /// Provides a new <see cref="MobileActions" /> instance referencing this action map.
+        /// Provides a new <see cref="TouchActions" /> instance referencing this action map.
         /// </summary>
-        public MobileActions @Mobile => new MobileActions(this);
+        public TouchActions @Touch => new TouchActions(this);
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Keyboard" which allows adding and removing callbacks.
         /// </summary>
@@ -640,12 +706,26 @@ namespace Minofall
             void OnHold(InputAction.CallbackContext context);
         }
         /// <summary>
-        /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Mobile" which allows adding and removing callbacks.
+        /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Touch" which allows adding and removing callbacks.
         /// </summary>
-        /// <seealso cref="MobileActions.AddCallbacks(IMobileActions)" />
-        /// <seealso cref="MobileActions.RemoveCallbacks(IMobileActions)" />
-        public interface IMobileActions
+        /// <seealso cref="TouchActions.AddCallbacks(ITouchActions)" />
+        /// <seealso cref="TouchActions.RemoveCallbacks(ITouchActions)" />
+        public interface ITouchActions
         {
+            /// <summary>
+            /// Method invoked when associated input action "PrimaryPosition" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnPrimaryPosition(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "PrimaryContact" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnPrimaryContact(InputAction.CallbackContext context);
         }
     }
 }

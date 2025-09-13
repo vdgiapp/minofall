@@ -1,5 +1,4 @@
 ﻿using Cysharp.Threading.Tasks;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Minofall
@@ -19,9 +18,7 @@ namespace Minofall
         private bool _isPaused = false;
 
         // Stats
-        private int _score = 0;
-        private int _level = 1;
-        private int _linesCleared = 0;
+        private SessionData _sessionData = new(0, 1, 0);
 
         private void Awake()
         {
@@ -44,15 +41,21 @@ namespace Minofall
             // TODO: set best score
 
             // Disable input
-            _inputManager.DisableKeyboardActions();
+            _inputManager.DisableMainGameActions();
 
             // Cooldown
             HandleCooldownBeforePlay().Forget();
         }
 
+        private void OnApplicationPause(bool pause)
+        {
+            OnPauseButtonClick();
+        }
+
         private void OnDestroy()
         {
             DisconnectEvents();
+            _coreManager.SetLastSessionData(_sessionData);
         }
 
         private void OnMoveLeft() => _boardController.MovePiece(Vector2Int.left);
@@ -74,7 +77,7 @@ namespace Minofall
             _uiController.SetGameOverOverlayActive(true);
 
             // Disable input
-            _inputManager.DisableKeyboardActions();
+            _inputManager.DisableMainGameActions();
 
             await UniTask.WaitForSeconds(5);
             SceneController.Instance.NewTransition()
@@ -88,17 +91,17 @@ namespace Minofall
         private void OnLinesCleared(int lines)
         {
             // Update stats
-            _linesCleared += lines;
-            _score += CalculateScore(lines, _level);
-            _level = 1 + _linesCleared / 10;
+            _sessionData.linesCleared += lines;
+            _sessionData.score += CalculateScore(lines, _sessionData.level);
+            _sessionData.level = 1 + _sessionData.linesCleared / 10;
 
             // Update drop time
-            _boardController.SetDropTime(TetrisGravity.GetDropTime(_level));
+            _boardController.SetDropTime(TetrisGravity.GetDropTime(_sessionData.level));
 
             // Update UI
-            _uiController.SetScoreText(Utils.NumberFormat(_score));
-            _uiController.SetLevelText(_level.ToString("D2"));
-            _uiController.SetLinesText($"Lines: {_linesCleared}");
+            _uiController.SetScoreText(Utils.NumberFormat(_sessionData.score));
+            _uiController.SetLevelText(_sessionData.level.ToString("D2"));
+            _uiController.SetLinesText($"Lines: {_sessionData.linesCleared}");
         }
 
         private void OnNextPiecesChanged(int[] nextPieces)
@@ -138,14 +141,24 @@ namespace Minofall
             _uiController.SetMenuOverlayActive(true);
 
             // Disable input
-            _inputManager.DisableKeyboardActions();
-
+            _inputManager.DisableMainGameActions();
         }
 
         // Connected to Resume button in inspector
         public void OnResumeButtonClick()
         {
             HandleCooldownBeforePlay().Forget();
+        }
+
+        // Connected to Quit button in inspector
+        public void OnQuitButtonClick()
+        {
+            SceneController.Instance.NewTransition()
+                .Load(SceneController.SceneName.MainMenu, true)
+                .Unload(SceneController.SceneName.MainGame)
+                .WithOverlay()
+                .WithClearUnusedAssets()
+                .Perform();
         }
 
         private async UniTaskVoid HandleCooldownBeforePlay()
@@ -169,7 +182,7 @@ namespace Minofall
             // Hide cooldown overlay and show pause button
             _uiController.SetPauseButtonActive(true);
             _uiController.SetCooldownOverlayActive(false);
-            _inputManager.EnableKeyboardActions();
+            _inputManager.EnableMainGameActions();
         }
 
         private void ConnectEvents()

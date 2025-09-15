@@ -1,15 +1,16 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace Minofall
 {
-    // Singleton in Bootstrapper prefab
-    // No need to DontDestroyOnLoad
+    /// <summary>
+    /// Là một singleton, quản lý đầu vào của người chơi. Sử dụng Input System mới của Unity.
+    /// </summary>
     public class InputManager : MonoBehaviour
     {
-        public static InputManager Instance { get; private set; }
+        public static InputManager Instance
+        { get; private set; }
 
         public event Action OnMoveRight;
         public event Action OnMoveLeft;
@@ -26,9 +27,18 @@ namespace Minofall
 
         private void Awake()
         {
-            InstanceInit();
+            // Singleton init
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+
+            // Input actions
             inputActions = new GInputActions();
-            //
+
+            // Get action maps
             _keyboardActions = inputActions.Keyboard;
             _touchActions = inputActions.Touch;
         }
@@ -46,6 +56,7 @@ namespace Minofall
 
             // Mobile
             _touchActions.PrimaryContact.started += OnTouchStarted;
+            _touchActions.PrimaryContact.performed += OnTouchPerformed;
             _touchActions.PrimaryContact.canceled += OnTouchEnded;
             _touchActions.PrimaryPosition.performed += OnPositionPerformed;
         }
@@ -73,6 +84,7 @@ namespace Minofall
 
             // Mobile
             _touchActions.PrimaryContact.started -= OnTouchStarted;
+            _touchActions.PrimaryContact.performed -= OnTouchPerformed;
             _touchActions.PrimaryContact.canceled -= OnTouchEnded;
             _touchActions.PrimaryPosition.performed -= OnPositionPerformed;
         }
@@ -89,16 +101,6 @@ namespace Minofall
             _touchActions.Disable();
         }
 
-        private void InstanceInit()
-        {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-        }
-
         private void RaiseMoveLeft(InputAction.CallbackContext context) => OnMoveLeft?.Invoke();
         private void RaiseMoveRight(InputAction.CallbackContext context) => OnMoveRight?.Invoke();
         private void RaiseRotateLeft(InputAction.CallbackContext context) => OnRotateLeft?.Invoke();
@@ -107,19 +109,28 @@ namespace Minofall
         private void RaiseHardDrop(InputAction.CallbackContext context) => OnHardDrop?.Invoke();
         private void RaiseHold(InputAction.CallbackContext context) => OnHold?.Invoke();
 
+        // Called when touch (or pointer press) begins
         private void OnTouchStarted(InputAction.CallbackContext ctx)
         {
-            
+            Debug.Log("Touch started");
         }
 
+        // Called when touch (or pointer press) ends
         private void OnTouchEnded(InputAction.CallbackContext ctx)
         {
-            
+            Debug.Log("Touch ended");
         }
 
+        // Called when touch (or pointer press) ends
+        private void OnTouchPerformed(InputAction.CallbackContext ctx)
+        {
+            Debug.Log("Touch performed");
+        }
+
+        // Called continuously while pointer/mouse/finger moves
         private void OnPositionPerformed(InputAction.CallbackContext ctx)
         {
-            
+            Debug.Log("Touch position: " + ctx.ReadValue<Vector2>());
         }
     }
 }

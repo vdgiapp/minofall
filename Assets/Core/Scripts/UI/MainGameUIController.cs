@@ -118,7 +118,7 @@ namespace Minofall
             seq.AppendInterval(holdTime);
             seq.Append(_cooldownText.DOFade(0f, fadeOutTime));
 
-            await seq.AsyncWaitForCompletion();
+            await seq.AsyncWaitForCompletion().AsUniTask();
         }
     }
 }

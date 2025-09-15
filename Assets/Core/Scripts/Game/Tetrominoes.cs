@@ -2,8 +2,14 @@ using UnityEngine;
 
 namespace Minofall
 {
+    /// <summary>
+    /// Static class, chứa dữ liệu các khối tetromino, bao gồm các vị trí ô vuông, góc quay và màu sắc.
+    /// </summary>
     public static class Tetrominoes
     {
+        /// <summary>
+        /// Chứa dữ liệu của một tetromino, bao gồm các vị trí ô vuông cho từng góc quay và màu sắc.
+        /// </summary>
         public struct TetrominoData
         {
             public Vector2Int[][] cells; // include rotation index cells
@@ -16,7 +22,11 @@ namespace Minofall
             }
         }
 
-        // Gốc index = bottem left
+        /// <summary>
+        /// <para>Dữ liệu các tetromino, bao gồm vị trí ô vuông cho từng góc quay và màu sắc.</para>
+        /// <para>Lưu ý: Góc quay được định nghĩa theo chiều kim đồng hồ, bắt đầu từ 0 độ.
+        /// Và gốc tọa độ (0,0) được đặt ở góc dưới bên trái của khối tetromino.</para>
+        /// </summary>
         private static readonly TetrominoData[] _tetrominoes =
         {
             // I
@@ -104,9 +114,28 @@ namespace Minofall
             ),
         };
 
+        /// <summary>
+        /// Độ dài mảng tetrominoes.
+        /// </summary>
         public static int Length => _tetrominoes.Length;
+
+        /// <summary>
+        /// Độ dài của mảng góc quay (số góc quay).
+        /// </summary>
         public static int MaxRotations => _tetrominoes[0].cells.Length;
-        public static Color GetColor(int idx) => _tetrominoes[idx].color;
-        public static Vector2Int[] GetCells(int idx, int rotationIdx) => _tetrominoes[idx].cells[rotationIdx];
+
+        /// <summary>
+        /// Trả về màu sắc của tetromino có index được truyền vào.
+        /// </summary>
+        /// <param name="tetrominoIndex">Index của tetromino</param>
+        public static Color GetColor(int tetrominoIndex) => _tetrominoes[tetrominoIndex].color;
+
+        /// <summary>
+        /// Trả về mảng các vị trí ô vuông của tetromino có index và góc quay được truyền vào.
+        /// </summary>
+        /// <param name="idx">Index của tetromino</param>
+        /// <param name="rotationIdx">Index góc xoay của tetromino</param>
+        public static Vector2Int[] GetCells(int tetrominoIndex, int rotationIndex)
+            => _tetrominoes[tetrominoIndex].cells[rotationIndex];
     }
 }

@@ -1,9 +1,13 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 
 namespace Minofall
 {
+    /// <summary>
+    /// <para>Yêu cầu một CanvasGroup trên cùng một GameObject.</para>
+    /// Dùng để hiển thị một overlay loading với hiệu ứng mờ dần.
+    /// </summary>
     [RequireComponent(typeof(CanvasGroup))]
     public class LoadingOverlay : MonoBehaviour
     {

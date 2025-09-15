@@ -1,12 +1,17 @@
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.Audio;
 
 namespace Minofall
 {
-    // Singleton in Bootstrapper prefab
-    // No need to DontDestroyOnLoad
+    /// <summary>
+    /// Là một singleton, quản lý tất cả các hoạt động liên quan đến âm thanh trong trò chơi.
+    /// </summary>
     public class AudioManager : MonoBehaviour
     {
-        public static AudioManager Instance { get; private set; }
+        public static AudioManager Instance
+        { get; private set; }
+
+        [SerializeField] private AudioMixer _audioMixer;
 
         [SerializeField] private AudioSource _musicSource1;
         [SerializeField] private AudioSource _musicSource2;
@@ -17,15 +22,7 @@ namespace Minofall
 
         private void Awake()
         {
-            InstanceInit();
-            if (_musicSource1 == null) _musicSource1 = transform.Find("MusicSource1").GetComponent<AudioSource>();
-            if (_musicSource2 == null) _musicSource2 = transform.Find("MusicSource2").GetComponent<AudioSource>();
-            if (_sfxSource == null) _sfxSource = transform.Find("SFXSource").GetComponent<AudioSource>();
-            if (_uiSource == null) _uiSource = transform.Find("UISource").GetComponent<AudioSource>();
-        }
-
-        private void InstanceInit()
-        {
+            // Singleton init
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);

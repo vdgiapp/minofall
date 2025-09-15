@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Minofall
 {
+    /// <summary>
+    /// Kiểm soát bảng chơi, bao gồm lưới ô, mảnh ghép hiện tại, mảnh ghép dự bị, giữ mảnh ghép, v.v.
+    /// </summary>
     public class BoardController : MonoBehaviour
     {
         // Constants
@@ -33,26 +36,7 @@ namespace Minofall
 
         private void Awake()
         {
-            InitializeBoard();
-
-            // Initialize piece generator
-            _pieceGenerator.FillBag();
-            _pieceGenerator.FillQueue();
-        }
-
-        private void Start()
-        {
-            SpawnPieceFromQueue();
-            RaiseNextPiecesChanged();
-        }
-
-        private void Update()
-        {
-            HandlePieceDropTimer();
-        }
-
-        private void InitializeBoard()
-        {
+            // Initialize board grid
             _cells = new Cell[BOARD_SIZE.y, BOARD_SIZE.x];
             for (int r = 0; r < BOARD_SIZE.y; r++)
             {
@@ -64,6 +48,20 @@ namespace Minofall
                     _cells[r, c] = new Cell(display, Color.clear, false);
                 }
             }
+
+            // Initialize piece generator
+            _pieceGenerator.Initialize();
+        }
+
+        private void Start()
+        {
+            SpawnPieceFromQueue();
+            RaiseNextPiecesChanged();
+        }
+
+        private void Update()
+        {
+            HandlePieceDropTimer();
         }
 
         private void SpawnPieceFromQueue()

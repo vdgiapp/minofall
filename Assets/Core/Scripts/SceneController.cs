@@ -5,59 +5,22 @@ using UnityEngine.SceneManagement;
 
 namespace Minofall
 {
-    // Singleton in Core scene
+    /// <summary>
+    /// Là một singleton, sử dụng để xử lý chuyển cảnh trong game,
+    /// bao gồm load/unload scene, hiển thị overlay loading, v.v.
+    /// </summary>
     public class SceneController : MonoBehaviour
     {
-        public static SceneController Instance { get; private set; }
+        public static SceneController Instance
+        { get; private set; }
 
-        // Scene names
-        public class SceneName
+        /// <summary>
+        /// Class chứa tên các scene trong game để tránh lỗi đánh máy và magic strings.
+        /// </summary>
+        public class SceneNames
         {
             public const string MainMenu = "MainMenu";
             public const string MainGame = "MainGame";
-            public const string GameResult = "GameResult";
-        }
-
-        // Scene transition request
-        public class SceneTransitionRequest
-        {
-            public readonly List<string> ScenesToLoad = new();
-            public readonly List<string> ScenesToUnload = new();
-            public string ActiveSceneName { get; private set; } = "";
-            public bool ClearUnusedAssets { get; private set; } = false;
-            public bool UseOverlay { get; private set; } = false;
-
-            // Builder
-            public SceneTransitionRequest Load(string sceneName, bool setActive = false)
-            {
-                ScenesToLoad.Add(sceneName);
-                if (setActive) ActiveSceneName = sceneName;
-                return this;
-            }
-
-            public SceneTransitionRequest Unload(string sceneName)
-            {
-                ScenesToUnload.Add(sceneName);
-                return this;
-            }
-
-            public SceneTransitionRequest WithOverlay()
-            {
-                UseOverlay = true;
-                return this;
-            }
-
-            public SceneTransitionRequest WithClearUnusedAssets()
-            {
-                ClearUnusedAssets = true;
-                return this;
-            }
-
-            // Executor
-            public void Perform()
-            {
-                SceneController.Instance.PerformTransition(this).Forget();
-            }
         }
 
         [SerializeField] private LoadingOverlay _loadingOverlay;
@@ -66,15 +29,41 @@ namespace Minofall
 
         private void Awake()
         {
-            InstanceInit();
+            // Singleton init
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
         }
 
-        public SceneTransitionRequest NewTransition()
+        private void Start()
+        {
+            // TODO: Wait for player data loaded
+#if (!UNITY_EDITOR)
+            // First scene load
+            NewTransition()
+                .Load(SceneNames.MainMenu, true)
+                .Unload("EditorBootstrap")
+                .WithOverlay()
+            .Perform();
+#endif
+        }
+
+        /// <summary>
+        /// Tạo một yêu cầu chuyển cảnh mới.
+        /// </summary>
+        public static SceneTransitionRequest NewTransition()
         {
             return new SceneTransitionRequest();
         }
 
-        public async UniTaskVoid PerformTransition(SceneTransitionRequest request)
+        /// <summary>
+        /// Thực hiện chuyển cảnh asynchronously dựa trên yêu cầu đã cho.
+        /// </summary>
+        /// <param name="request">Cấu hình yêu cầu chuyển đổi</param>
+        public async UniTask PerformTransition(SceneTransitionRequest request)
         {
             if (_isBusy)
             {
@@ -85,28 +74,26 @@ namespace Minofall
             _isBusy = true;
 
             // Show overlay if needed
-            if (request.UseOverlay) await _loadingOverlay.ShowAsync();
+            if (request.UseOverlay)
+                await _loadingOverlay.ShowAsync();
 
             // Unload scenes
             foreach (string sceneName in request.ScenesToUnload)
             {
-                if (Utils.IsSceneLoaded(sceneName))
-                {
+                if (Utils.IsSceneLoaded(sceneName)) 
                     await SceneManager.UnloadSceneAsync(sceneName);
-                }
             }
 
             // Clear unused assets
-            if (request.ClearUnusedAssets) await Resources.UnloadUnusedAssets();
+            if (request.ClearUnusedAssets)
+                await Resources.UnloadUnusedAssets();
 
             // Load scenes
             foreach (string sceneName in request.ScenesToLoad)
             {
+                // Nếu đã load thì unload trước
                 if (Utils.IsSceneLoaded(sceneName))
-                {
-                    // Nếu đã load thì unload trước
                     await SceneManager.UnloadSceneAsync(sceneName);
-                }
                 await SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
             }
 
@@ -114,27 +101,17 @@ namespace Minofall
             if (!string.IsNullOrEmpty(request.ActiveSceneName))
             {
                 Scene scene = SceneManager.GetSceneByName(request.ActiveSceneName);
-                if (scene.IsValid()) SceneManager.SetActiveScene(scene);
+                if (scene.IsValid())
+                    SceneManager.SetActiveScene(scene);
                 else
-                {
                     Debug.LogWarning($"Active scene '{request.ActiveSceneName}' not found after load.");
-                }
             }
 
             // Hide overlay if needed
-            if (request.UseOverlay) await _loadingOverlay.HideAsync();
+            if (request.UseOverlay)
+                await _loadingOverlay.HideAsync();
 
             _isBusy = false;
-        }
-
-        private void InstanceInit()
-        {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
         }
     }
 }

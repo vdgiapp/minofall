@@ -6,9 +6,9 @@ namespace Minofall
     {
         public void OnPlayButtonPressed()
         {
-            SceneController.Instance.NewTransition()
-                .Load(SceneController.SceneName.MainGame, true)
-                .Unload(SceneController.SceneName.MainMenu)
+            SceneController.NewTransition()
+                .Load(SceneController.SceneNames.MainGame, true)
+                .Unload(SceneController.SceneNames.MainMenu)
                 .WithOverlay()
                 .WithClearUnusedAssets()
                 .Perform();

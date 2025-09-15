@@ -3,32 +3,27 @@ using UnityEngine;
 
 namespace Minofall
 {
+    /// <summary>
+    /// Kiểm soát luồng chính của trò chơi, bao gồm quản lý trạng thái trò chơi,
+    /// cập nhật giao diện người dùng và xử lý sự kiện trò chơi.
+    /// </summary>
     public class GameManager : MonoBehaviour
     {
-        // Singleton references
-        private InputManager _inputManager => InputManager.Instance;
-        private CoreManager _coreManager => CoreManager.Instance;
-
         // References
         [SerializeField] private BoardController _boardController;
         [SerializeField] private MainGameUIController _uiController;
 
-        // State
-        private bool _isGameOver = false;
-        private bool _isPaused = false;
-
         // Stats
-        private SessionData _sessionData = new(0, 1, 0);
-
-        private void Awake()
-        {
-            ConnectEvents();
-        }
+        private int score = 0;
+        private int level = 1;
+        private int linesCleared = 0;
 
         private void Start()
         {
+            // Connect events
+            ConnectEvents();
+
             // Pause game for cooldown
-            _isPaused = true;
             _boardController.enabled = false;
 
             // Hide pause button
@@ -41,7 +36,7 @@ namespace Minofall
             // TODO: set best score
 
             // Disable input
-            _inputManager.DisableMainGameActions();
+            InputManager.Instance.DisableMainGameActions();
 
             // Cooldown
             HandleCooldownBeforePlay().Forget();
@@ -55,7 +50,6 @@ namespace Minofall
         private void OnDestroy()
         {
             DisconnectEvents();
-            _coreManager.SetLastSessionData(_sessionData);
         }
 
         private void OnMoveLeft() => _boardController.MovePiece(Vector2Int.left);
@@ -69,7 +63,6 @@ namespace Minofall
         private async void OnGameOver()
         {
             // Pause game
-            _isPaused = true;
             _boardController.enabled = false;
 
             // Show game over overlay
@@ -77,12 +70,13 @@ namespace Minofall
             _uiController.SetGameOverOverlayActive(true);
 
             // Disable input
-            _inputManager.DisableMainGameActions();
+            InputManager.Instance.DisableMainGameActions();
 
+            // Wait for a few seconds before returning to main menu
             await UniTask.WaitForSeconds(5);
-            SceneController.Instance.NewTransition()
-                .Load(SceneController.SceneName.GameResult, true)
-                .Unload(SceneController.SceneName.MainGame)
+            SceneController.NewTransition()
+                .Load(SceneController.SceneNames.MainMenu, true)
+                .Unload(SceneController.SceneNames.MainGame)
                 .WithOverlay()
                 .WithClearUnusedAssets()
                 .Perform();
@@ -91,17 +85,17 @@ namespace Minofall
         private void OnLinesCleared(int lines)
         {
             // Update stats
-            _sessionData.linesCleared += lines;
-            _sessionData.score += CalculateScore(lines, _sessionData.level);
-            _sessionData.level = 1 + _sessionData.linesCleared / 10;
+            linesCleared += lines;
+            score += CalculateScore(lines, level);
+            level = 1 + linesCleared / 10;
 
             // Update drop time
-            _boardController.SetDropTime(TetrisGravity.GetDropTime(_sessionData.level));
+            _boardController.SetDropTime(TetrisGravity.GetDropTime(level));
 
             // Update UI
-            _uiController.SetScoreText(Utils.NumberFormat(_sessionData.score));
-            _uiController.SetLevelText(_sessionData.level.ToString("D2"));
-            _uiController.SetLinesText($"Lines: {_sessionData.linesCleared}");
+            _uiController.SetScoreText(Utils.NumberFormat(score));
+            _uiController.SetLevelText(level.ToString("D2"));
+            _uiController.SetLinesText($"Lines: {linesCleared}");
         }
 
         private void OnNextPiecesChanged(int[] nextPieces)
@@ -129,11 +123,13 @@ namespace Minofall
             }
         }
 
-        // Connected to Pause button in inspector
+        /// <summary>
+        /// Gọi khi nút Pause được nhấp.
+        /// Được kết nối với sự kiện onClick của PauseButton trong Inspector
+        /// </summary>
         public void OnPauseButtonClick()
         {
             // Pause game
-            _isPaused = true;
             _boardController.enabled = false;
 
             // Show pause menu overlay
@@ -141,27 +137,33 @@ namespace Minofall
             _uiController.SetMenuOverlayActive(true);
 
             // Disable input
-            _inputManager.DisableMainGameActions();
+            InputManager.Instance.DisableMainGameActions();
         }
 
-        // Connected to Resume button in inspector
+        /// <summary>
+        /// Gọi khi nút Resume được nhấp.
+        /// Được kết nối với sự kiện onClick của ResumeButton trong Inspector
+        /// </summary>
         public void OnResumeButtonClick()
         {
             HandleCooldownBeforePlay().Forget();
         }
 
-        // Connected to Quit button in inspector
+        /// <summary>
+        /// Gọi khi nút Quit được nhấp.
+        /// Được kết nối với sự kiện onClick của QuitButton trong Inspector
+        /// </summary>
         public void OnQuitButtonClick()
         {
-            SceneController.Instance.NewTransition()
-                .Load(SceneController.SceneName.MainMenu, true)
-                .Unload(SceneController.SceneName.MainGame)
+            SceneController.NewTransition()
+                .Load(SceneController.SceneNames.MainMenu, true)
+                .Unload(SceneController.SceneNames.MainGame)
                 .WithOverlay()
                 .WithClearUnusedAssets()
                 .Perform();
         }
 
-        private async UniTaskVoid HandleCooldownBeforePlay()
+        private async UniTask HandleCooldownBeforePlay()
         {
             // Show cooldown overlay and hide pause menu overlay
             _uiController.SetMenuOverlayActive(false);
@@ -176,24 +178,23 @@ namespace Minofall
             }
 
             // Resume game
-            _isPaused = false;
             _boardController.enabled = true;
 
             // Hide cooldown overlay and show pause button
             _uiController.SetPauseButtonActive(true);
             _uiController.SetCooldownOverlayActive(false);
-            _inputManager.EnableMainGameActions();
+            InputManager.Instance.EnableMainGameActions();
         }
 
         private void ConnectEvents()
         {
-            _inputManager.OnMoveLeft += OnMoveLeft;
-            _inputManager.OnMoveRight += OnMoveRight;
-            _inputManager.OnRotateLeft += OnRotateLeft;
-            _inputManager.OnRotateRight += OnRotateRight;
-            _inputManager.OnSoftDrop += OnSoftDrop;
-            _inputManager.OnHardDrop += OnHardDrop;
-            _inputManager.OnHold += OnHold;
+            InputManager.Instance.OnMoveLeft += OnMoveLeft;
+            InputManager.Instance.OnMoveRight += OnMoveRight;
+            InputManager.Instance.OnRotateLeft += OnRotateLeft;
+            InputManager.Instance.OnRotateRight += OnRotateRight;
+            InputManager.Instance.OnSoftDrop += OnSoftDrop;
+            InputManager.Instance.OnHardDrop += OnHardDrop;
+            InputManager.Instance.OnHold += OnHold;
 
             _boardController.OnGameOver += OnGameOver;
             _boardController.OnLinesCleared += OnLinesCleared;
@@ -203,13 +204,13 @@ namespace Minofall
 
         private void DisconnectEvents()
         {
-            _inputManager.OnMoveLeft -= OnMoveLeft;
-            _inputManager.OnMoveRight -= OnMoveRight;
-            _inputManager.OnRotateLeft -= OnRotateLeft;
-            _inputManager.OnRotateRight -= OnRotateRight;
-            _inputManager.OnSoftDrop -= OnSoftDrop;
-            _inputManager.OnHardDrop -= OnHardDrop;
-            _inputManager.OnHold -= OnHold;
+            InputManager.Instance.OnMoveLeft -= OnMoveLeft;
+            InputManager.Instance.OnMoveRight -= OnMoveRight;
+            InputManager.Instance.OnRotateLeft -= OnRotateLeft;
+            InputManager.Instance.OnRotateRight -= OnRotateRight;
+            InputManager.Instance.OnSoftDrop -= OnSoftDrop;
+            InputManager.Instance.OnHardDrop -= OnHardDrop;
+            InputManager.Instance.OnHold -= OnHold;
 
             _boardController.OnGameOver -= OnGameOver;
             _boardController.OnLinesCleared -= OnLinesCleared;

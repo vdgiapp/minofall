@@ -4,10 +4,6 @@ using UnityEngine;
 
 namespace Minofall
 {
-    /// <summary>
-    /// <para>Yêu cầu một CanvasGroup trên cùng một GameObject.</para>
-    /// Dùng để hiển thị một overlay loading với hiệu ứng mờ dần.
-    /// </summary>
     [RequireComponent(typeof(CanvasGroup))]
     public class LoadingOverlay : MonoBehaviour
     {
@@ -29,7 +25,7 @@ namespace Minofall
         {
             _canvasGroup.blocksRaycasts = true;
             await _canvasGroup.DOFade(1f, _fadeInDuration)
-                .SetUpdate(true) // ignore timescale
+                .SetUpdate(true)
                 .AsyncWaitForCompletion();
         }
 

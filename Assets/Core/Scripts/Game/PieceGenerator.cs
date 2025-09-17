@@ -3,38 +3,19 @@ using UnityEngine;
 
 namespace Minofall
 {
-    /// <summary>
-    /// Một bộ tạo mảnh sử dụng hệ thống túi để đảm bảo phân phối đồng đều các tetromino.
-    /// </summary>
     public class PieceGenerator
     {
-        /// <summary>
-        /// Kich thước cần xem trước của hàng đợi.
-        /// </summary>
         public const int PREVIEW_SIZE = 3;
 
-        /// <summary>
-        /// Hàng đợi các mảnh tiếp theo.
-        /// </summary>
         private readonly Queue<int> _nextQueue = new();
-
-        /// <summary>
-        /// Danh sách các tetromino có sẵn trong túi.
-        /// </summary>
         private readonly List<int> _pieceBag = new();
 
-        /// <summary>
-        /// Khởi tạo bộ tạo mảnh.
-        /// </summary>
         public void Initialize()
         {
             FillBag();
             FillQueue();
         }
 
-        /// <summary>
-        /// Làm đầy túi với tất cả các tetromino và xáo trộn chúng.
-        /// </summary>
         public void FillBag()
         {
             _pieceBag.Clear();
@@ -50,9 +31,6 @@ namespace Minofall
             }
         }
 
-        /// <summary>
-        /// Làm đầy hàng đợi từ túi.
-        /// </summary>
         public void FillQueue()
         {
             while (_nextQueue.Count < PREVIEW_SIZE && _pieceBag.Count > 0)
@@ -63,19 +41,11 @@ namespace Minofall
             }
         }
 
-        /// <summary>
-        /// Trả về một mảng của hàng đợi mà không loại bỏ các mảnh.
-        /// </summary>
-        /// <returns></returns>
         public int[] PeekQueue()
         {
             return _nextQueue.ToArray();
         }
 
-        /// <summary>
-        /// Lấy mảnh tiếp theo từ hàng đợi và làm đầy lại hàng đợi từ túi nếu cần.
-        /// </summary>
-        /// <returns></returns>
         public int GetNextPiece()
         {
             int piece = _nextQueue.Dequeue();

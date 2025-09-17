@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 350991513}
   - component: {fileID: 350991512}
   m_Layer: 0
-  m_Name: EditorCoreLoader
+  m_Name: Editor Core Loader
   m_TagString: EditorOnly
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -1,13 +1,7 @@
 ﻿namespace Minofall
 {
-    /// <summary>
-    /// Static class, dùng để lấy thời gian rơi của các khối theo level trong Tetris.
-    /// </summary>
     public static class TetrisGravity
     {
-        /// <summary>
-        /// Mảng thời gian rơi của các khối theo level.
-        /// </summary>
         private static readonly float[] DropTimes =
         {
             0.01667f, // Level 0 (not play)
@@ -38,11 +32,6 @@
             0.0333f   // Level 25 (Max guideline speed)
         };
 
-        /// <summary>
-        /// Trả về thời gian rơi của các khối theo level.
-        /// </summary>
-        /// <param name="level">Level cần tính</param>
-        /// <returns></returns>
         public static float GetDropTime(int level)
         {
             if (level < 1) level = 1;

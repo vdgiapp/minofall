@@ -3,9 +3,6 @@ using UnityEngine;
 
 namespace Minofall
 {
-    /// <summary>
-    /// Kiểm soát bảng chơi, bao gồm lưới ô, mảnh ghép hiện tại, mảnh ghép dự bị, giữ mảnh ghép, v.v.
-    /// </summary>
     public class BoardController : MonoBehaviour
     {
         // Constants
@@ -18,15 +15,16 @@ namespace Minofall
 
         // Events
         public event Action OnGameOver;
+        public event Action OnPieceLocked;
         public event Action<int> OnLinesCleared;
         public event Action<int> OnHoldPieceChanged;
         public event Action<int[]> OnNextPiecesChanged;
 
         // Main data / logic
         private Cell[,] _cells;
-        private Piece _currentPiece = new();
+        private Piece _currentPiece;
         private Vector2Int _ghostPosition = new(0, 0);
-        private readonly PieceGenerator _pieceGenerator = new();
+        private PieceGenerator _pieceGenerator;
         private int _holdingPiece = -1;
 
         private bool _hasHeldThisTurn = false;
@@ -49,19 +47,32 @@ namespace Minofall
                 }
             }
 
+            // Initialize current piece
+            _currentPiece = new Piece();
+
             // Initialize piece generator
+            _pieceGenerator = new PieceGenerator();
             _pieceGenerator.Initialize();
         }
 
         private void Start()
         {
             SpawnPieceFromQueue();
-            RaiseNextPiecesChanged();
+            OnNextPiecesChanged?.Invoke(_pieceGenerator.PeekQueue());
         }
 
         private void Update()
         {
-            HandlePieceDropTimer();
+            // Handle automatic piece dropping
+            _dropTimer += Time.deltaTime;
+            if (_dropTimer >= _dropTime)
+            {
+                _dropTimer -= _dropTime;
+                if (!MovePiece(Vector2Int.down))
+                {
+                    LockPiece();
+                }
+            }
         }
 
         private void SpawnPieceFromQueue()
@@ -93,11 +104,12 @@ namespace Minofall
                     data.cellDisplay.Show(_currentPiece.color);
                 }
             }
+            OnPieceLocked?.Invoke();
             _highestOccupiedRow = Mathf.Min(BOARD_SIZE.y, Mathf.Max(_highestOccupiedRow, _currentPiece.position.y + 4));
             _hasHeldThisTurn = false;
             ClearFullRows();
             SpawnPieceFromQueue();
-            RaiseNextPiecesChanged();
+            OnNextPiecesChanged?.Invoke(_pieceGenerator.PeekQueue());
         }
 
         private void ShowPiece() => TogglePiece(true);
@@ -216,22 +228,6 @@ namespace Minofall
             }
         }
 
-        private void HandlePieceDropTimer()
-        {
-            _dropTimer += Time.deltaTime;
-            if (_dropTimer >= _dropTime)
-            {
-                _dropTimer -= _dropTime;
-                if (!MovePiece(Vector2Int.down))
-                {
-                    LockPiece();
-                }
-            }
-        }
-
-        private void RaiseNextPiecesChanged() => OnNextPiecesChanged?.Invoke(_pieceGenerator.PeekQueue());
-        private void RaiseHoldPieceChanged() => OnHoldPieceChanged?.Invoke(_holdingPiece);
-
         public bool HoldPiece()
         {
             if (_hasHeldThisTurn) return false;
@@ -258,7 +254,7 @@ namespace Minofall
                 ShowPiece();
             }
             _hasHeldThisTurn = true;
-            RaiseHoldPieceChanged();
+            OnHoldPieceChanged?.Invoke(_holdingPiece);
             return true;
         }
 
@@ -302,38 +298,6 @@ namespace Minofall
         public void SetDropTime(float dropTime)
         {
             _dropTime = dropTime;
-        }
-
-        // GIZMOS
-        private void OnDrawGizmos()
-        {
-            var color = Gizmos.color;
-
-            // Top row exclusive
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(new(-1f, _highestOccupiedRow, 0f), new(11f, _highestOccupiedRow, 0f));
-
-            // Spawn position
-            var spawnPosTopLeft = DEFAULT_SPAWN_POSITION + Vector2.up * 4;
-            var spawnPosTopRight = spawnPosTopLeft + Vector2.right * 4;
-            var spawnPosBotRight = DEFAULT_SPAWN_POSITION + Vector2.right * 4;
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawLine((Vector3Int)DEFAULT_SPAWN_POSITION, spawnPosTopLeft);
-            Gizmos.DrawLine(spawnPosTopLeft, spawnPosTopRight);
-            Gizmos.DrawLine((Vector3Int)DEFAULT_SPAWN_POSITION, spawnPosBotRight);
-            Gizmos.DrawLine(spawnPosBotRight, spawnPosTopRight);
-
-            // Piece position
-            var piecePosTopLeft = _currentPiece.position + Vector2.up * 4;
-            var piecePosTopRight = piecePosTopLeft + Vector2.right * 4;
-            var piecePosBotRight = _currentPiece.position + Vector2.right * 4;
-            Gizmos.color = Color.white;
-            Gizmos.DrawLine((Vector3Int)_currentPiece.position, piecePosTopLeft);
-            Gizmos.DrawLine(piecePosTopLeft, piecePosTopRight);
-            Gizmos.DrawLine((Vector3Int)_currentPiece.position, piecePosBotRight);
-            Gizmos.DrawLine(piecePosBotRight, piecePosTopRight);
-
-            Gizmos.color = color;
         }
     }
 }

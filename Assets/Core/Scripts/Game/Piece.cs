@@ -2,6 +2,7 @@
 
 namespace Minofall
 {
+    [System.Serializable]
     public class Piece
     {
         public int tetrominoIndex;
@@ -11,7 +12,7 @@ namespace Minofall
 
         public Piece()
         {
-            Initialize(0, 0, new(0, 0), Tetrominoes.GetColor(0));
+            Initialize(0, 0, BoardController.DEFAULT_SPAWN_POSITION, Tetrominoes.GetColor(0));
         }
 
         public Piece(int tetrominoIndex, int rotationIndex, Vector2Int position, Color color)

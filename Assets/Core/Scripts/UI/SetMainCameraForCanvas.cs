@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Minofall
+namespace Minofall.UI
 {
     [RequireComponent(typeof(Canvas))]
     public class SetMainCameraForCanvas : MonoBehaviour

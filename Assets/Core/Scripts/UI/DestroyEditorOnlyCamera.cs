@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Minofall
+namespace Minofall.UI
 {
     public class DestroyEditorOnlyCamera : MonoBehaviour
     {

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Minofall
+namespace Minofall.UI
 {
     [RequireComponent(typeof(RawImage))]
     public class ScrollingPattern : MonoBehaviour

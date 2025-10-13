@@ -1,7 +1,8 @@
 ﻿using Cysharp.Threading.Tasks;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Minofall.UI;
+using Minofall.Data;
 
 namespace Minofall
 {
@@ -18,6 +19,7 @@ namespace Minofall
 
         [SerializeField] private LoadingOverlay _loadingOverlay;
 
+        public bool IsBusy => _isBusy;
         private bool _isBusy = false;
 
         private void Awake()
@@ -33,14 +35,7 @@ namespace Minofall
 
         private void Start()
         {
-#if (!UNITY_EDITOR)
-            // Load MainMenu scene (if in runtime)
-            NewTransition()
-                .Load(SceneNames.MainMenu, true)
-                .WithOverlay()
-                .WithClearUnusedAssets()
-            .Perform();
-#endif
+            LoadDataAndMainMenu().Forget();
         }
 
         public static SceneTransitionRequest NewTransition()
@@ -111,6 +106,18 @@ namespace Minofall
             }
 
             _isBusy = false;
+        }
+
+        private async UniTask LoadDataAndMainMenu()
+        {
+            await PlayerData.Instance.LoadAllAsync();
+#if (!UNITY_EDITOR)
+            NewTransition()
+                .Load(SceneNames.MainMenu, true)
+                .WithOverlay()
+                .WithClearUnusedAssets()
+            .Perform();
+#endif
         }
     }
 }

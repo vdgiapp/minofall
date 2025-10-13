@@ -2,23 +2,21 @@
 using DG.Tweening;
 using UnityEngine;
 
-namespace Minofall
+namespace Minofall.UI
 {
-    [RequireComponent(typeof(CanvasGroup))]
-    public class LoadingOverlay : MonoBehaviour
+    public class LoadingOverlay : UIOverlay
     {
         [SerializeField] private float _fadeInDuration = 0.5f;
         [SerializeField] private float _fadeOutDuration = 0.5f;
 
-        private CanvasGroup _canvasGroup;
-
-        private void Awake()
+        protected override void Awake()
         {
-            _canvasGroup = GetComponent<CanvasGroup>();
+            base.Awake();
 #if UNITY_EDITOR
             _canvasGroup.alpha = 0f;
             _canvasGroup.blocksRaycasts = false;
 #endif
+            _canvasGroup.interactable = false;
         }
 
         public async UniTask ShowAsync()

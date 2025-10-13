@@ -7,8 +7,20 @@ namespace Minofall
     {
         public const int PREVIEW_SIZE = 3;
 
-        private readonly Queue<int> _nextQueue = new();
-        private readonly List<int> _pieceBag = new();
+        private readonly Queue<int> _nextQueue;
+        private readonly List<int> _pieceBag;
+
+        public PieceGenerator()
+        {
+            _nextQueue = new();
+            _pieceBag = new();
+        }
+
+        public PieceGenerator(Queue<int> nextQueue, List<int> pieceBag)
+        {
+            _nextQueue = nextQueue;
+            _pieceBag = pieceBag;
+        }
 
         public void Initialize()
         {
@@ -44,6 +56,11 @@ namespace Minofall
         public int[] PeekQueue()
         {
             return _nextQueue.ToArray();
+        }
+
+        public int[] PeekBag()
+        {
+            return _pieceBag.ToArray();
         }
 
         public int GetNextPiece()

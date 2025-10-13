@@ -16,26 +16,29 @@ namespace Minofall
         // Events
         public event Action OnGameOver;
         public event Action OnPieceLocked;
-        public event Action<int> OnLinesCleared;
+        public event Action<int, bool> OnLinesCleared;
         public event Action<int> OnHoldPieceChanged;
         public event Action<int[]> OnNextPiecesChanged;
+        public event Action OnPieceSoftDrop;
+        public event Action<int> OnPieceHardDrop;
 
         // Main data / logic
-        private Cell[,] _cells;
-        private Piece _currentPiece;
-        private Vector2Int _ghostPosition = new(0, 0);
-        private PieceGenerator _pieceGenerator;
-        private int _holdingPiece = -1;
-
-        private bool _hasHeldThisTurn = false;
-        private int _highestOccupiedRow = 0;
+        private Cell[,] _cells = new Cell[BOARD_SIZE.y, BOARD_SIZE.x];
+        private CellDisplay[,] _cellDisplays = new CellDisplay[BOARD_SIZE.y, BOARD_SIZE.x];
+        private Piece _currentPiece = new();
+        private Vector2Int _ghostPosition = Vector2Int.zero;
+        private PieceGenerator _pieceGenerator = new();
+        private int _holdingPiece;
+        private bool _hasHeldThisTurn;
+        private int _highestOccupiedRow;
         private float _dropTime = TetrisGravity.GetDropTime(1);
-        private float _dropTimer = 0.0f;
+        private float _dropTimer;
 
-        private void Awake()
+        public Cell[,] GetCells() => _cells;
+        public BoardController WithCells(Cell[,] cells)
         {
-            // Initialize board grid
-            _cells = new Cell[BOARD_SIZE.y, BOARD_SIZE.x];
+            _cells = cells;
+            _cellDisplays = new CellDisplay[BOARD_SIZE.y, BOARD_SIZE.x];
             for (int r = 0; r < BOARD_SIZE.y; r++)
             {
                 for (int c = 0; c < BOARD_SIZE.x; c++)
@@ -43,21 +46,81 @@ namespace Minofall
                     CellDisplay display = Instantiate(_displayPrefab, _container);
                     display.transform.position = new(c, r);
                     display.Hide();
-                    _cells[r, c] = new Cell(display, Color.clear, false);
+                    _cellDisplays[r, c] = display;
+
+                    Cell cell = _cells[r, c];
+                    if (cell.occupied) _cellDisplays[r, c].Show(cell.color);
+                    else _cellDisplays[r, c].Hide();
                 }
             }
-
-            // Initialize current piece
-            _currentPiece = new Piece();
-
-            // Initialize piece generator
-            _pieceGenerator = new PieceGenerator();
-            _pieceGenerator.Initialize();
+            return this;
         }
 
-        private void Start()
+        public Piece GetPiece() => _currentPiece;
+        public BoardController WithPiece(Piece piece)
         {
-            SpawnPieceFromQueue();
+            _currentPiece = piece;
+            return this;
+        }
+
+        public Vector2Int GetGhostPosition() => _ghostPosition;
+        public BoardController WithGhostPosition(Vector2Int pos)
+        {
+            _ghostPosition = pos;
+            return this;
+        }
+
+        public PieceGenerator GetPieceGenerator() => _pieceGenerator;
+        public BoardController WithPieceGenerator(PieceGenerator pieceGenerator)
+        {
+            _pieceGenerator = pieceGenerator;
+            return this;
+        }
+
+        public int GetHoldingPiece() => _holdingPiece;
+        public BoardController WithHoldingPiece(int holdingPiece)
+        {
+            _holdingPiece = holdingPiece;
+            return this;
+        }
+
+        public bool GetHeldThisTurn() => _hasHeldThisTurn;
+        public BoardController WithHeldThisTurn(bool heldThisTurn)
+        {
+            _hasHeldThisTurn = heldThisTurn;
+            return this;
+        }
+
+        public int GetHighestRow() => _highestOccupiedRow;
+        public BoardController WithHighestRow(int highestRow)
+        {
+            _highestOccupiedRow = highestRow;
+            return this;
+        }
+
+        public float GetDropTimer() => _dropTimer;
+        public BoardController WithDropTimer(float dropTimer)
+        {
+            _dropTimer = dropTimer;
+            return this;
+        }
+
+        public void PauseGame() => enabled = false;
+        public void ResumeGame() => enabled = true;
+
+        public void InitGame(bool isNewGame)
+        {
+            if (isNewGame)
+            {
+                _pieceGenerator.Initialize();
+                SpawnPieceFromQueue();
+            }
+            else
+            {
+                ShowGhost();
+                ShowPiece();
+            }
+            OnHoldPieceChanged?.Invoke(_holdingPiece);
             OnNextPiecesChanged?.Invoke(_pieceGenerator.PeekQueue());
         }
 
@@ -101,7 +164,8 @@ namespace Minofall
                     Cell data = _cells[lockPos.y, lockPos.x];
                     data.occupied = true;
                     data.color = _currentPiece.color;
-                    data.cellDisplay.Show(_currentPiece.color);
+                    CellDisplay displayData = _cellDisplays[lockPos.y, lockPos.x];
+                    displayData.Show(_currentPiece.color);
                 }
             }
             OnPieceLocked?.Invoke();
@@ -122,9 +186,9 @@ namespace Minofall
                 Vector2Int pos = _currentPiece.position + c;
                 if (IsWithinBounds(pos))
                 {
-                    Cell cell = _cells[pos.y, pos.x];
-                    if (show) cell.cellDisplay.Show(_currentPiece.color);
-                    else cell.cellDisplay.Hide();
+                    CellDisplay cellDisplay = _cellDisplays[pos.y, pos.x];
+                    if (show) cellDisplay.Show(_currentPiece.color);
+                    else cellDisplay.Hide();
                 }
             }
         }
@@ -146,9 +210,9 @@ namespace Minofall
                     Vector2Int pos = _ghostPosition + offset;
                     if (IsWithinBounds(pos))
                     {
-                        Cell cell = _cells[pos.y, pos.x];
-                        if (show) cell.cellDisplay.Ghost(Color.white);
-                        else cell.cellDisplay.Hide();
+                        CellDisplay cellDisplay = _cellDisplays[pos.y, pos.x];
+                        if (show) cellDisplay.Ghost(Color.white);
+                        else cellDisplay.Hide();
                     }
                 }
             }
@@ -192,7 +256,9 @@ namespace Minofall
             }
             for (int r = writeRow; r < _highestOccupiedRow; r++) ClearRow(r);
             _highestOccupiedRow = writeRow;
-            if (linesCleared > 0) OnLinesCleared?.Invoke(linesCleared);
+            bool isTSpin = DetectTSpin();
+            if (linesCleared > 0) OnLinesCleared?.Invoke(linesCleared, isTSpin);
+            else if (isTSpin) OnLinesCleared?.Invoke(0, isTSpin);
         }
 
         private bool IsRowFull(int row)
@@ -212,8 +278,9 @@ namespace Minofall
                 Cell dst = _cells[to, c];
                 dst.occupied = src.occupied;
                 dst.color = src.color;
-                if (dst.occupied) dst.cellDisplay.Show(dst.color);
-                else dst.cellDisplay.Hide();
+                CellDisplay cellDisplay = _cellDisplays[to, c];
+                if (dst.occupied) cellDisplay.Show(dst.color);
+                else cellDisplay.Hide();
             }
         }
 
@@ -224,9 +291,37 @@ namespace Minofall
                 Cell cell = _cells[row, c];
                 cell.occupied = false;
                 cell.color = Color.clear;
-                cell.cellDisplay.Hide();
+                CellDisplay cellDisplay = _cellDisplays[row, c];
+                cellDisplay.Hide();
             }
         }
+
+        private bool DetectTSpin()
+        {
+            if (_currentPiece.tetrominoIndex != 5) return false;
+
+            Vector2Int center = _currentPiece.position;
+
+            Vector2Int[] corners =
+            {
+                new(center.x - 1, center.y - 1), // bottom-left
+                new(center.x + 1, center.y - 1), // bottom-right
+                new(center.x - 1, center.y + 1), // top-left
+                new(center.x + 1, center.y + 1)  // top-right
+            };
+
+            int blockedCount = 0;
+            foreach (var c in corners)
+            {
+                if (!IsWithinBounds(c) || _cells[c.y, c.x].occupied)
+                {
+                    blockedCount++;
+                }
+            }
+
+            return blockedCount >= 3;
+        }
+
 
         public bool HoldPiece()
         {
@@ -285,14 +380,24 @@ namespace Minofall
         public bool SoftDropPiece()
         {
             bool moved = MovePiece(Vector2Int.down);
-            if (moved) _dropTimer = 0f;
+            if (moved)
+            {
+                _dropTimer = 0f;
+                OnPieceSoftDrop?.Invoke();
+            }
             return moved;
         }
 
         public void HardDropPiece()
         {
-            while (MovePiece(Vector2Int.down)) continue;
+            int distance = 0;
+            while (MovePiece(Vector2Int.down))
+            {
+                distance++;
+                continue;
+            }
             LockPiece();
+            OnPieceHardDrop?.Invoke(distance);
         }
 
         public void SetDropTime(float dropTime)

@@ -1,6 +1,6 @@
-# 🎮 MinoFall
+# MinoFall
 
-A **Tetris-style clone** built from scratch using **Unity (C#)** — featuring smooth animations, audio mixing, and modern visual polish.  
+A **Tetris-style clone** built from scratch using **Unity (C#)** — featuring audio mixing, and modern visual polish.  
 Developed as a solo project to practice **gameplay programming, optimization**, and **UI/UX** for 2D games.
 
 ---
